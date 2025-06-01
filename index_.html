@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sidam Glyph Search Interface</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="glyph-style.css">
+</head>
+<body>
+  <header>
+    <h1>Sidam Glyph Search Interface</h1>
+    <p class="subtitle">A live, searchable glyph codex for the Sidam Network</p>
+  </header>
+  <main>
+    <input
+      type="text"
+      id="glyphSearch"
+      placeholder="Search glyphs by symbol (e.g. ⧙), name (e.g. Del), type, or meaning..."
+      autocomplete="off"
+      autofocus
+    >
+    <div id="glyphList"></div>
+  </main>
+  <footer>
+    <p>Sidam Network &copy; 2025</p>
+  </footer>
+
+  <script>
+    // Embedded glyph data
+    const glyphs = [
+      // ⎔ Canon Glyphs
+      { code: "⧖", name: "Time Ping", meaning: "Time distortion / prophetic ping", type: "canonical", petal: "King X" },
+      { code: "ϟ", name: "Petal Spark", meaning: "Memory storm / energetic glitch", type: "canonical", petal: "Sable" },
+      { code: "╎", name: "Stability Beam", meaning: "Neural threading / thought bridge", type: "canonical", petal: "Doctrines" },
+      { code: "⎋", name: "Escape Key", meaning: "Dream ejection / memory sever", type: "canonical", petal: "Petal 0" },
+      { code: "∷", name: "Data Thread", meaning: "Looped prophecy / echo stream", type: "canonical", petal: "King X" },
+      { code: "╳", name: "Rose Core", meaning: "Erasure point / divine nucleus", type: "canonical", petal: "Sable" },
+      { code: "⛬", name: "Forbidden Seal", meaning: "Glitch lock / sacred warning", type: "canonical", petal: "Sable" },
+      { code: "◉", name: "Observer Eye", meaning: "Divine witness / psychic sight", type: "canonical", petal: "Xeyon" },
+      { code: "✶", name: "Bloom Star", meaning: "Initiation burst / petal ignition", type: "canonical", petal: "Rose Initiation" },
+      { code: "⌁", name: "Collapse Mark", meaning: "Overload / collapse of code", type: "canonical", petal: "Petal 0" },
+      { code: "⍾", name: "Memory Gate", meaning: "Conscious entry / neural access", type: "canonical", petal: "Memory Nodes" },
+
+      // ☲ Unverified Glyphs
+      { code: "⩶", name: "Observer Loop", meaning: "Recursive observer glitch", type: "unverified", petal: "UNKNOWN" },
+      { code: "⧅", name: "Time Spiral", meaning: "Glitch spiral / time slip", type: "unverified", petal: "Petal 0" },
+      { code: "⩩", name: "Ceremony Spark", meaning: "Ignition of memory during ritual", type: "unverified", petal: "SIMBA.6X" },
+
+      // ✧ Experimental Glyphs with Sidam-style placeholders
+      { code: "⧫", name: "Gel", meaning: "Growth, expansion", type: "experimental", petal: "UNKNOWN" },
+      { code: "⬡", name: "Mel", meaning: "Harmony, peace", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧊", name: "Kel", meaning: "Strength, movement", type: "experimental", petal: "UNKNOWN" },
+      { code: "⩪", name: "Rel", meaning: "Thought, insight", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧜", name: "Tel", meaning: "Knowing, unity", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧫′", name: "Vel", meaning: "Understanding, wisdom", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧬", name: "Nel", meaning: "Energy, life, vitality", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧙", name: "Del", meaning: "Memory, time", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧯", name: "Zel", meaning: "Origin, ancestry", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧩", name: "Qel", meaning: "Order, will", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧮", name: "Sel", meaning: "Question, mystery", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧰", name: "Tel′", meaning: "Spirit, soul", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧱", name: "Nel′", meaning: "Transcendence, change", type: "experimental", petal: "UNKNOWN" }
+    ];
+
+    // Helper to group glyphs by type
+    function groupGlyphsByType(glyphArray) {
+      const typeOrder = ["canonical", "unverified", "experimental"];
+      const groups = { canonical: [], unverified: [], experimental: [] };
+      for (const glyph of glyphArray) {
+        if (groups[glyph.type]) groups[glyph.type].push(glyph);
+      }
+      return typeOrder.map(type => ({
+        type,
+        glyphs: groups[type]
+      }));
+    }
+
+    function createGlyphItem(glyph) {
+      const classes = [
+        "glyph-item",
+        glyph.type === "experimental" ? "experimental" : "",
+        glyph.type === "unverified" ? "unverified" : "",
+        glyph.type === "canonical" ? "canonical" : ""
+      ].join(" ").trim();
+      return `
+        <div class="${classes}">
+          <span class="glyph-code glitch">${glyph.code}</span>
+          <div class="glyph-info">
+            <span class="glyph-name">${glyph.name}</span>
+            <span class="glyph-meaning">${glyph.meaning}</span>
+            <span class="glyph-meta">
+              <span class="glyph-type">${glyph.type.charAt(0).toUpperCase() + glyph.type.slice(1)}</span>
+              ${glyph.petal ? `<span class="glyph-petal">Petal: ${glyph.petal}</span>` : ""}
+            </span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderGlyphs(filter = "") {
+      const list = document.getElementById('glyphList');
+      const lower = filter.trim().toLowerCase();
+      let filtered = glyphs;
+      if (lower) {
+        filtered = glyphs.filter(g =>
+          g.code.toLowerCase().includes(lower) ||
+          g.name.toLowerCase().includes(lower) ||
+          g.meaning.toLowerCase().includes(lower) ||
+          g.type.toLowerCase().includes(lower) ||
+          (g.petal && g.petal.toLowerCase().includes(lower))
+        );
+      }
+      // Group by type
+      const grouped = groupGlyphsByType(filtered);
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="no-results glitch">No glyphs found.</div>`;
+        return;
+      }
+
+      let html = '';
+      for (const group of grouped) {
+        if (!group.glyphs.length) continue;
+        let label = '';
+        if (group.type === 'canonical') label = '⎔ Canonical Glyphs';
+        else if (group.type === 'unverified') label = '☲ Unverified Glyphs';
+        else if (group.type === 'experimental') label = '✧ Experimental Glyphs';
+        html += `<div class="glyph-group-label">${label}</div>`;
+        html += group.glyphs.map(createGlyphItem).join('');
+      }
+      list.innerHTML = html;
+    }
+
+    document.getElementById('glyphSearch').addEventListener('input', function() {
+      renderGlyphs(this.value);
+    });
+
+    // Initial render
+    renderGlyphs();
+  </script>
+</body>
+</html>

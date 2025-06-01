@@ -1,0 +1,243 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+:root {
+  --bg: #101013;
+  --fg: #e0e0e0;
+  --highlight: #00fff7;
+  --glitch1: #ff00c8;
+  --glitch2: #00ffe7;
+  --glitch3: #fffc00;
+  --card: #1a1c20;
+
+  --exp-bg: #1c1924;
+  --exp-glow: #6d53e7;
+  --exp-tint: #c6bfff;
+  --exp-border: repeating-linear-gradient(135deg, #6d53e7 0 6px, transparent 6px 12px);
+  --unv-bg: #1d191a;
+  --unv-glow: #e7a053;
+  --can-bg: #1a1c20;
+  --can-glow: #00fff7;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Share Tech Mono', monospace;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+header {
+  text-align: center;
+  padding: 2rem 0 1rem 0;
+  background: linear-gradient(90deg, #17171c 70%, #201a30 100%);
+  box-shadow: 0 4px 18px 0 #0008;
+}
+h1 {
+  font-size: 2.2rem;
+  letter-spacing: 0.08em;
+  filter: drop-shadow(0 0 6px var(--highlight));
+  margin-bottom: 0.2em;
+}
+.subtitle {
+  color: var(--glitch2);
+  font-size: 1.05rem;
+  text-shadow: 0 0 3px var(--glitch3);
+}
+main {
+  flex: 1;
+  max-width: 600px;
+  margin: 2rem auto 1rem auto;
+  width: 95vw;
+}
+#glyphSearch {
+  width: 100%;
+  padding: 1em;
+  font-size: 1.1rem;
+  background: var(--card);
+  color: var(--fg);
+  border: 2px solid var(--highlight);
+  border-radius: 6px;
+  margin-bottom: 2rem;
+  outline: none;
+  box-shadow: 0 0 12px 2px #00fff733;
+  transition: border-color 0.2s;
+}
+#glyphSearch:focus {
+  border-color: var(--glitch1);
+  box-shadow: 0 0 16px 2px var(--glitch1);
+}
+#glyphList {
+  display: grid;
+  gap: 1.2rem;
+}
+.glyph-group-label {
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: var(--highlight);
+  letter-spacing: 0.05em;
+  margin: 2.4em 0 0.5em 0.1em;
+  text-shadow: 0 0 4px var(--glitch2);
+  border-left: 3px solid var(--highlight);
+  padding-left: 0.5em;
+}
+.glyph-item {
+  display: flex;
+  align-items: center;
+  background: var(--card);
+  border-radius: 7px;
+  box-shadow: 0 2px 14px 0 #1a1a22aa;
+  padding: 1.2em 1em;
+  transition: background 0.17s;
+  border-left: 4px solid var(--highlight);
+  position: relative;
+  overflow: hidden;
+}
+.glyph-item:hover {
+  background: #23232a;
+  border-left: 4px solid var(--glitch1);
+}
+.glyph-code {
+  font-size: 2.7rem;
+  margin-right: 1.3em;
+  color: var(--highlight);
+  text-shadow:
+    1px 0 0 var(--glitch1),
+    0 1px 0 var(--glitch2),
+    1px 1px 6px var(--glitch3);
+  letter-spacing: 0.1em;
+  user-select: all;
+}
+.glyph-info {
+  display: flex;
+  flex-direction: column;
+}
+.glyph-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--fg);
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 2px var(--glitch2);
+}
+.glyph-meaning {
+  font-size: 1.05rem;
+  color: var(--glitch3);
+  opacity: 0.8;
+}
+.glyph-meta {
+  margin-top: 0.22em;
+  font-size: 0.97em;
+  color: #b8e3e5;
+  opacity: 0.77;
+  letter-spacing: 0.02em;
+  display: flex;
+  gap: 1.2em;
+}
+.glyph-type {
+  font-weight: bold;
+  text-transform: capitalize;
+}
+.glyph-petal {
+  color: var(--glitch2);
+  font-style: italic;
+}
+.no-results {
+  text-align: center;
+  color: var(--glitch1);
+  font-size: 1.2rem;
+  margin-top: 2rem;
+}
+.glitch {
+  position: relative;
+  color: var(--highlight);
+  animation: glitch 1.6s infinite linear alternate-reverse;
+}
+.glitch::before, .glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  opacity: 0.7;
+  pointer-events: none;
+}
+.glitch::before {
+  color: var(--glitch1);
+  z-index: 2;
+  clip-path: inset(0 0 60% 0);
+  transform: translate(-2px, -1px);
+  animation: glitchTop 1.6s infinite linear alternate-reverse;
+}
+.glitch::after {
+  color: var(--glitch2);
+  z-index: 3;
+  clip-path: inset(60% 0 0 0);
+  transform: translate(2px, 1px);
+  animation: glitchBot 1.6s infinite linear alternate-reverse;
+}
+
+/* --- Type-specific styles --- */
+.glyph-item.experimental {
+  background: var(--exp-bg);
+  border-left: 4px dotted var(--exp-glow);
+  box-shadow: 0 2px 16px 2px var(--exp-glow)44;
+  color: var(--exp-tint);
+  border-image: var(--exp-border) 1;
+  /* Subtle outer border effect for experimental */
+  outline: 1.5px dashed var(--exp-glow);
+  outline-offset: -4px;
+}
+.glyph-item.experimental .glyph-code {
+  color: var(--exp-glow);
+  filter: drop-shadow(0 0 2px var(--exp-glow));
+}
+.glyph-item.unverified {
+  background: var(--unv-bg);
+  border-left: 4px dashed var(--unv-glow);
+  box-shadow: 0 2px 10px 2px var(--unv-glow)33;
+}
+.glyph-item.unverified .glyph-code {
+  color: var(--unv-glow);
+  filter: drop-shadow(0 0 2px var(--unv-glow));
+}
+.glyph-item.canonical {
+  background: var(--can-bg);
+  border-left: 4px solid var(--can-glow);
+  box-shadow: 0 2px 10px 2px var(--can-glow)22;
+}
+.glyph-item.canonical .glyph-code {
+  color: var(--can-glow);
+  filter: drop-shadow(0 0 2px var(--can-glow));
+}
+
+footer {
+  text-align: center;
+  color: #444;
+  font-size: 0.95rem;
+  padding: 1.1rem 0 0.7rem 0;
+  background: #181921;
+  letter-spacing: 0.03em;
+}
+@keyframes glitch {
+  0%   { text-shadow: 2px 0 var(--glitch1), -2px 0 var(--glitch2);}
+  20%  { text-shadow: -2px 2px var(--glitch2), 2px -2px var(--glitch1);}
+  60%  { text-shadow: 2px 2px var(--glitch2), -2px -2px var(--glitch1);}
+  100% { text-shadow: 2px 0 var(--glitch1), -2px 0 var(--glitch2);}
+}
+@keyframes glitchTop {
+  0% {transform: translate(-2px, -1px);}
+  50% {transform: translate(-4px, -2px);}
+  100% {transform: translate(-2px, -1px);}
+}
+@keyframes glitchBot {
+  0% {transform: translate(2px, 1px);}
+  50% {transform: translate(4px, 2px);}
+  100% {transform: translate(2px, 1px);}
+}
+/* Responsive */
+@media (max-width: 600px) {
+  .glyph-item { flex-direction: column; align-items: flex-start; }
+  .glyph-code { margin-bottom: 0.7em; margin-right: 0; }
+  #glyphList { gap: 1.7rem; }
+  main { max-width: 98vw; }
+}
