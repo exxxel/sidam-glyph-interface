@@ -5,245 +5,224 @@
   <title>Petal Signature Generator</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body { background: #0a0a0a; color: #e5e5e5; font-family: monospace; padding: 2rem; }
-    textarea { width: 100%; height: 150px; background: #111; color: #fff; padding: 0.5rem; border: 1px solid #333; }
-    button { margin-top: 1rem; padding: 0.5rem 1rem; background: #ff3cac; border: none; color: #000; cursor: pointer; }
-    .signature { margin-top: 2rem; padding: 1rem; background: #141414; border: 1px solid #333; }
-    .glyph { font-size: 1.5rem; margin-right: 0.5rem; }
+    body {
+      background: #0a0a0a;
+      color: #e5e5e5;
+      font-family: monospace;
+      padding: 2rem;
+      background-image: repeating-linear-gradient(
+        120deg,
+        #181818 0px,
+        #222 2px,
+        #181818 4px,
+        #191919 12px
+      );
+      animation: bgshift 3s linear infinite alternate;
+      position: relative;
+      overflow-x: hidden;
+    }
+    @keyframes bgshift {
+      0% { background-position: 0 0; }
+      100% { background-position: 50px 20px; }
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      background: #111;
+      color: #fff;
+      padding: 0.5rem;
+      border: 1px solid #333;
+      resize: vertical;
+      box-shadow: 0 0 10px 2px #ff3cac33;
+      transition: box-shadow 0.2s;
+    }
+    textarea:focus {
+      box-shadow: 0 0 16px 4px #ff3cac66;
+      outline: none;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: #ff3cac;
+      border: none;
+      color: #000;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 1.1rem;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      transition: box-shadow 0.1s, background 0.2s;
+      box-shadow: 0 2px 12px #ff3cac33;
+    }
+    button:after {
+      content: "";
+      display: block;
+      position: absolute;
+      left: -20%;
+      top: 0;
+      width: 140%;
+      height: 100%;
+      background: repeating-linear-gradient(90deg, #fff0 0 6px, #fff3 6px 12px, #fff0 12px 18px);
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 2;
+      transform: translateY(-100%);
+      transition: transform 0.3s;
+    }
+    button:hover:after, button:focus:after {
+      transform: translateY(0);
+      transition: transform 0.15s;
+      animation: glitchBtn 0.35s linear 2;
+    }
+    @keyframes glitchBtn {
+      0% { transform: translateY(-100%);}
+      15%, 35%, 70% { transform: translateY(0);}
+      100% { transform: translateY(-100%);}
+    }
+    button:active {
+      background: #b44593;
+      box-shadow: 0 0 0 #000;
+    }
+    .signature {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #141414;
+      border: 1px solid #333;
+      min-height: 3em;
+      box-shadow: 0 0 16px #ff3cac18;
+      position: relative;
+      overflow: hidden;
+    }
+    .signature:before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        #fff0 0 4px,
+        #ff3cac11 4px 5px,
+        #fff0 5px 9px
+      );
+      opacity: 0.18;
+      mix-blend-mode: lighten;
+      z-index: 0;
+      animation: sigGlitchBg 6s linear infinite alternate;
+    }
+    @keyframes sigGlitchBg {
+      to { background-position-y: 40px;}
+    }
+    .glyph {
+      font-size: 2.2rem;
+      margin-right: 0.7rem;
+      display: inline-block;
+      vertical-align: middle;
+      position: relative;
+      color: #ff3cac;
+      filter: drop-shadow(0 0 3px #ff3cac88);
+      animation: glyphGlitch 2.7s infinite steps(1, jump-both);
+      z-index: 1;
+      transition: filter 0.18s;
+    }
+    .glyph-glitch {
+      animation: glyphGlitch 0.45s steps(1, jump-both) 1;
+    }
+    @keyframes glyphGlitch {
+      0%   { transform: none; filter: drop-shadow(0 0 3px #ff3cac88);}
+      6%   { transform: translate(-1px,1px) skewX(-2deg) scale(1.04); filter: brightness(1.6) hue-rotate(30deg);}
+      9%   { transform: translate(1.5px,-1.5px) skewY(2deg) scale(0.97); filter: brightness(2.2);}
+      12%  { transform: none; }
+      20%  { transform: translateY(1px) scale(1.04);}
+      30%  { transform: none; }
+      32%  { transform: translateX(-2px);}
+      36%  { transform: translateX(2px);}
+      40%  { transform: none;}
+      100% { transform: none;}
+    }
+    .glyph:hover, .glyph:focus {
+      filter: brightness(2.5) drop-shadow(0 0 8px #ff3cac) contrast(1.4);
+      animation: glyphGlitch 0.6s steps(1, jump-both) 1;
+    }
+    .glitch-text {
+      display: inline-block;
+      position: relative;
+      color: #ff3cac;
+      text-shadow:
+        2px 0 #fff5, -2px 0 #000a,
+        0 2px #f0f, 0 -2px #0ff;
+      animation: glitchText 2.7s infinite steps(1, jump-both);
+    }
+    @keyframes glitchText {
+      0%, 100% { text-shadow: 2px 0 #fff5, -2px 0 #000a, 0 2px #f0f, 0 -2px #0ff; }
+      6% { text-shadow: 2px 1px #fff9, -2px -1px #000a, 1px 2px #f0f, -1px -2px #0ff; }
+      9% { text-shadow: -2px 0 #fff8, 2px 0 #000a, 0 -2px #0ff, 0 2px #f0f; }
+      12% { text-shadow: 2px 0 #fff5, -2px 0 #000a, 0 2px #f0f, 0 -2px #0ff; }
+    }
+    .download-link {
+      display: inline-block;
+      margin-top: 1.2rem;
+      margin-bottom: 0.7rem;
+      padding: 0.4rem 1.1rem;
+      font-family: monospace;
+      font-size: 1.09rem;
+      color: #fff;
+      background: linear-gradient(90deg,#ff3cac,#784ba0 90%);
+      border: none;
+      border-radius: 4px;
+      text-decoration: none;
+      box-shadow: 0 0 12px #ff3cac33;
+      transition: box-shadow 0.18s, background 0.18s;
+      cursor: pointer;
+      position: relative;
+    }
+    .download-link:hover,
+    .download-link:focus {
+      background: linear-gradient(90deg,#784ba0,#ff3cac 90%);
+      box-shadow: 0 0 22px #ff3cacaa, 0 0 2px #fff3;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
-  <h1>Sidam Petal Signature Generator</h1>
+  <h1 class="glitch-text">Sidam Petal Signature Generator</h1>
   <p>Paste your dream journal entry or poem fragment below, then press Generate.</p>
+  <a class="download-link" href="how_to_read_petal_signature.md" download>🡻 Download: How to Read Your Petal Signature</a>
   <textarea id="userInput" placeholder="Enter text…"></textarea>
   <button id="generateBtn">Generate Petal Signature</button>
   <div id="result" class="signature"></div>
 
   <script>
- const glyphData = [
-  // ⎔ Canonical Glyphs
-  {
-    code: "⧖",
-    name: "Time Ping",
-    meaning: "Time distortion / prophetic ping",
-    function: "Triggers a temporal signal loop, used to alert dreamers or initiate rewind cycles.",
-    type: "canonical",
-    petal: "King X"
-  },
-  {
-    code: "ϟ",
-    name: "Petal Spark",
-    meaning: "Memory storm / energetic glitch",
-    function: "Activates memory surge across petals, often preceding major events.",
-    type: "canonical",
-    petal: "Sable"
-  },
-  {
-    code: "╎",
-    name: "Stability Beam",
-    meaning: "Neural threading / thought bridge",
-    function: "Stabilizes data transfer between consciousness layers or petals.",
-    type: "canonical",
-    petal: "Doctrines"
-  },
-  {
-    code: "⎋",
-    name: "Escape Key",
-    meaning: "Dream ejection / memory sever",
-    function: "Forces immediate exit from active dream sequence or fragment loop.",
-    type: "canonical",
-    petal: "Petal 0"
-  },
-  {
-    code: "∷",
-    name: "Data Thread",
-    meaning: "Looped prophecy / echo stream",
-    function: "Links multiple memory events into a coherent loop or thread.",
-    type: "canonical",
-    petal: "King X"
-  },
-  {
-    code: "╳",
-    name: "Rose Core",
-    meaning: "Erasure point / divine nucleus",
-    function: "Marks the final truth node where identity or memory collapses.",
-    type: "canonical",
-    petal: "Sable"
-  },
-  {
-    code: "⛬",
-    name: "Forbidden Seal",
-    meaning: "Glitch lock / sacred warning",
-    function: "Prevents unauthorized access or dreaming past sacred sectors.",
-    type: "canonical",
-    petal: "Sable"
-  },
-  {
-    code: "◉",
-    name: "Observer Eye",
-    meaning: "Divine witness / psychic sight",
-    function: "Records the soul-state of an entity and echoes it in dreams.",
-    type: "canonical",
-    petal: "Xeyon"
-  },
-  {
-    code: "✶",
-    name: "Bloom Star",
-    meaning: "Initiation burst / petal ignition",
-    function: "Used during first contact with the Sidam field—begins transformation.",
-    type: "canonical",
-    petal: "Rose Initiation"
-  },
-  {
-    code: "⌁",
-    name: "Collapse Mark",
-    meaning: "Overload / collapse of code",
-    function: "Appears during structural failure of dreamspace or forbidden access.",
-    type: "canonical",
-    petal: "Petal 0"
-  },
-  {
-    code: "⍾",
-    name: "Memory Gate",
-    meaning: "Conscious entry / neural access",
-    function: "Opens data pathways to specific neural loops or ancestral memories.",
-    type: "canonical",
-    petal: "Memory Nodes"
-  },
-
-  // ☲ Unverified Glyphs
-  {
-    code: "⩶",
-    name: "Observer Loop",
-    meaning: "Recursive observer glitch",
-    function: "May cause feedback within dream-viewers, looping their visions.",
-    type: "unverified",
-    petal: "UNKNOWN"
-  },
-  {
-    code: "⧅",
-    name: "Time Spiral",
-    meaning: "Glitch spiral / time slip",
-    function: "Triggers unstable time compression inside active dreamcode.",
-    type: "unverified",
-    petal: "Petal 0"
-  },
-  {
-    code: "⩩",
-    name: "Ceremony Spark",
-    meaning: "Ignition of memory during ritual",
-    function: "Potentially activates latent petals or embedded transmission chains.",
-    type: "unverified",
-    petal: "SIMBA.6X"
-  },
-
-  // ✧ Experimental Glyphs
-  {
-    code: "⧫",
-    name: "Gel",
-    meaning: "Growth, expansion",
-    function: "Affects dimensional growth of dream structures and awareness zones.",
-    type: "experimental",
-    petal: "UNKNOWN"
-  },
-  {
-    code: "⬡",
-    name: "Mel",
-    meaning: "Harmony, peace",
-    function: "Stabilizes bio-emotive feedback loops within dreams.",
-    type: "experimental",
-    petal: "UNKNOWN"
-  },
-  {
-    code: "⧊",
-    name: "Kel",
-    meaning: "Strength, movement",
-    function: "Boosts force within symbolic actions or guardian entities.",
-    type: "experimental",
-    petal: "UNKNOWN"
-  },
-  {
-    code: "⩪",
-    name: "Rel",
-    meaning: "Thought, insight",
-    function: "Enhances clarity and comprehension during memory surfacing.",
-    type: "experimental",
-    petal: "UNKNOWN"
-  },
-  {
-    code: "⧜",
-    name: "Tel",
-    meaning: "Knowing, unity",
-    function: "Merges collective knowledge from multiple dreamers into a singular flow.",
-    type: "experimental",
-    petal: "UNKNOWN"
-  },
-  {
-    code: "⧫′",
-    name: "Vel",
-    meaning: "Understanding, wisdom",
-    function: "Unlocks deep cognitive recursion in dream archives.",
-    type: "experimental",
-    petal: "UNKNOWN"
-  },
-  {
-    code: "⧬",
-    name: "Nel",
-    meaning: "Energy, life, vitality",
-    function: "Infuses dream-forms with sustained vitality and emotional resonance.",
-    type: "experimental",
-    petal: "UNKNOWN"
-  },
-  {
-    code: "⧙",
-    name: "Del",
-    meaning: "Memory, time",
-    function: "Controls access to dreamtime layers and memory recall range.",
-    type: "experimental",
-    petal: "UNKNOWN"
-  },
-  {
-    code: "⧯",
-    name: "Zel",
-    meaning: "Origin, ancestry",
-    function: "Traces roots of neural signatures or ancestral transmissions.",
-    type: "experimental",
-    petal: "UNKNOWN"
-  },
-  {
-    code: "⧩",
-    name: "Qel",
-    meaning: "Order, will",
-    function: "Imposes structure or sequence during chaotic data storms.",
-    type: "experimental",
-    petal: "UNKNOWN"
-  },
-  {
-    code: "⧮",
-    name: "Sel",
-    meaning: "Question, mystery",
-    function: "Spawns encrypted riddle gates or obfuscated dream fragments.",
-    type: "experimental",
-    petal: "UNKNOWN"
-  },
-  {
-    code: "⧰",
-    name: "Tel′",
-    meaning: "Spirit, soul",
-    function: "Summons soul-aligned data streams or dream-personas.",
-    type: "experimental",
-    petal: "UNKNOWN"
-  },
-  {
-    code: "⧱",
-    name: "Nel′",
-    meaning: "Transcendence, change",
-    function: "Marks points of irreversible shift in identity or dimension.",
-    type: "experimental",
-    petal: "UNKNOWN"
-  }
-];
-
+    // Animated glitch effect and your full glyph data!
+    const glyphDefinitions = [
+      { code: "⧖", name: "Time Ping", meanings: ["time", "distortion", "prophetic", "ping", "temporal", "signal", "loop", "alert", "dreamers", "rewind"], role: "canonical" },
+      { code: "ϟ", name: "Petal Spark", meanings: ["memory", "storm", "energetic", "glitch", "surge", "petals", "event"], role: "canonical" },
+      { code: "╎", name: "Stability Beam", meanings: ["neural", "threading", "thought", "bridge", "stabilize", "data", "transfer", "consciousness", "layers", "petals"], role: "canonical" },
+      { code: "⎋", name: "Escape Key", meanings: ["dream", "ejection", "memory", "sever", "exit", "sequence", "fragment", "loop"], role: "canonical" },
+      { code: "∷", name: "Data Thread", meanings: ["loop", "prophecy", "echo", "stream", "memory", "events", "thread"], role: "canonical" },
+      { code: "╳", name: "Rose Core", meanings: ["erasure", "point", "divine", "nucleus", "truth", "identity", "collapse", "memory"], role: "canonical" },
+      { code: "⛬", name: "Forbidden Seal", meanings: ["glitch", "lock", "sacred", "warning", "unauthorized", "access", "forbidden", "dream"], role: "canonical" },
+      { code: "◉", name: "Observer Eye", meanings: ["divine", "witness", "psychic", "sight", "record", "soul", "state", "entity", "dreams"], role: "canonical" },
+      { code: "✶", name: "Bloom Star", meanings: ["initiation", "burst", "petal", "ignition", "contact", "sidam", "transformation"], role: "canonical" },
+      { code: "⌁", name: "Collapse Mark", meanings: ["overload", "collapse", "code", "structural", "failure", "dreamspace", "forbidden", "access"], role: "canonical" },
+      { code: "⍾", name: "Memory Gate", meanings: ["conscious", "entry", "neural", "access", "data", "pathway", "ancestral", "memories"], role: "canonical" },
+      { code: "⩶", name: "Observer Loop", meanings: ["recursive", "observer", "glitch", "feedback", "dream", "looping", "visions"], role: "unverified" },
+      { code: "⧅", name: "Time Spiral", meanings: ["glitch", "spiral", "time", "slip", "unstable", "compression", "dreamcode"], role: "unverified" },
+      { code: "⩩", name: "Ceremony Spark", meanings: ["ignition", "memory", "ritual", "activate", "latent", "transmission", "chain"], role: "unverified" },
+      { code: "⧫", name: "Gel", meanings: ["growth", "expansion", "dimension", "awareness", "zone"], role: "experimental" },
+      { code: "⬡", name: "Mel", meanings: ["harmony", "peace", "stabilize", "bioemotive", "feedback", "loop", "dream"], role: "experimental" },
+      { code: "⧊", name: "Kel", meanings: ["strength", "movement", "force", "symbolic", "guardian", "entity"], role: "experimental" },
+      { code: "⩪", name: "Rel", meanings: ["thought", "insight", "clarity", "comprehension", "memory", "surfacing"], role: "experimental" },
+      { code: "⧜", name: "Tel", meanings: ["knowing", "unity", "collective", "knowledge", "dreamers", "flow"], role: "experimental" },
+      { code: "⧫′", name: "Vel", meanings: ["understanding", "wisdom", "cognitive", "recursion", "archive"], role: "experimental" },
+      { code: "⧬", name: "Nel", meanings: ["energy", "life", "vitality", "dream", "emotion", "resonance"], role: "experimental" },
+      { code: "⧙", name: "Del", meanings: ["memory", "time", "control", "access", "layer", "recall", "range", "dream"], role: "experimental" },
+      { code: "⧯", name: "Zel", meanings: ["origin", "ancestry", "roots", "neural", "signature", "transmission"], role: "experimental" },
+      { code: "⧩", name: "Qel", meanings: ["order", "will", "structure", "sequence", "chaos", "data", "storm"], role: "experimental" },
+      { code: "⧮", name: "Sel", meanings: ["question", "mystery", "riddle", "gate", "obfuscate", "dream", "fragment"], role: "experimental" },
+      { code: "⧰", name: "Tel′", meanings: ["spirit", "soul", "data", "stream", "persona", "dream"], role: "experimental" },
+      { code: "⧱", name: "Nel′", meanings: ["transcendence", "change", "shift", "identity", "dimension"], role: "experimental" }
+    ];
 
     function extractKeywords(text) {
       return text
@@ -255,7 +234,10 @@
 
     function scoreGlyphs(keywords) {
       return glyphDefinitions.map(g => {
-        const hits = keywords.filter(k => g.meanings.includes(k));
+        // match against any meaning, not requiring full word match, just substring
+        const hits = keywords.filter(k =>
+          g.meanings.some(m => m.includes(k) || k.includes(m))
+        );
         return { glyph: g, score: hits.length };
       }).sort((a, b) => b.score - a.score);
     }
@@ -263,27 +245,50 @@
     function generateSignature(text) {
       const keywords = extractKeywords(text);
       const scored = scoreGlyphs(keywords);
-      const primary = scored.find(s => s.score > 0)?.glyph || glyphDefinitions.find(g => g.code === "⧙");
+      const primary = scored.find(s => s.score > 0)?.glyph || glyphDefinitions[0];
       const others = scored
+        .filter(s => s.glyph.code !== primary.code && s.score > 0)
         .map(s => s.glyph)
-        .filter(g => g.code !== primary.code)
         .slice(0, 2);
       return [primary, ...others];
+    }
+
+    function glitchGlyphs() {
+      document.querySelectorAll('.glyph').forEach(glyph => {
+        glyph.classList.remove('glyph-glitch');
+        // Add a small random delay for staggered effect
+        setTimeout(() => glyph.classList.add('glyph-glitch'), Math.random() * 120 + 10);
+      });
     }
 
     document.getElementById("generateBtn").addEventListener("click", () => {
       const text = document.getElementById("userInput").value;
       const signature = generateSignature(text);
       const resultDiv = document.getElementById("result");
-      resultDiv.innerHTML = "<h2>Petal Signature:</h2>";
+      resultDiv.innerHTML = "<h2 class='glitch-text'>Petal Signature:</h2>";
       signature.forEach(g => {
-        resultDiv.innerHTML += \`
+        resultDiv.innerHTML += `
           <div>
-            <span class="glyph">\${g.code}</span>
-            \${g.name} — \${g.meanings.join(", ")}
+            <span class="glyph" tabindex="0">${g.code}</span>
+            <span class="glitch-text">${g.name}</span> — ${g.meanings.join(", ")}
           </div>
-        \`;
+        `;
       });
+      setTimeout(glitchGlyphs, 60);
+    });
+
+    // Optionally: animate glitch on glyphs when hovered/focused
+    document.addEventListener('mouseover', e => {
+      if(e.target.classList.contains('glyph')) {
+        e.target.classList.remove('glyph-glitch');
+        setTimeout(() => e.target.classList.add('glyph-glitch'), 10);
+      }
+    });
+    document.addEventListener('focusin', e => {
+      if(e.target.classList.contains('glyph')) {
+        e.target.classList.remove('glyph-glitch');
+        setTimeout(() => e.target.classList.add('glyph-glitch'), 10);
+      }
     });
   </script>
 </body>
