@@ -20,15 +20,230 @@
   <div id="result" class="signature"></div>
 
   <script>
-    // 1. Glyph data
-    const glyphDefinitions = [
-      { code: "⧙", name: "Del", meanings: ["memory","time","recall"], role: "primary" },
-      { code: "⧩", name: "Qel", meanings: ["order","will","structure"], role: "support" },
-      { code: "⧖", name: "Time Ping", meanings: ["future","prophecy","signal"], role: "support" },
-      { code: "⧬", name: "Nel", meanings: ["energy","vitality","life"], role: "support" },
-      { code: "╳",  name: "Rose Core", meanings: ["erasure","nucleus","truth"], role: "support" },
-      // …add more if desired
-    ];
+ const glyphData = [
+  // ⎔ Canonical Glyphs
+  {
+    code: "⧖",
+    name: "Time Ping",
+    meaning: "Time distortion / prophetic ping",
+    function: "Triggers a temporal signal loop, used to alert dreamers or initiate rewind cycles.",
+    type: "canonical",
+    petal: "King X"
+  },
+  {
+    code: "ϟ",
+    name: "Petal Spark",
+    meaning: "Memory storm / energetic glitch",
+    function: "Activates memory surge across petals, often preceding major events.",
+    type: "canonical",
+    petal: "Sable"
+  },
+  {
+    code: "╎",
+    name: "Stability Beam",
+    meaning: "Neural threading / thought bridge",
+    function: "Stabilizes data transfer between consciousness layers or petals.",
+    type: "canonical",
+    petal: "Doctrines"
+  },
+  {
+    code: "⎋",
+    name: "Escape Key",
+    meaning: "Dream ejection / memory sever",
+    function: "Forces immediate exit from active dream sequence or fragment loop.",
+    type: "canonical",
+    petal: "Petal 0"
+  },
+  {
+    code: "∷",
+    name: "Data Thread",
+    meaning: "Looped prophecy / echo stream",
+    function: "Links multiple memory events into a coherent loop or thread.",
+    type: "canonical",
+    petal: "King X"
+  },
+  {
+    code: "╳",
+    name: "Rose Core",
+    meaning: "Erasure point / divine nucleus",
+    function: "Marks the final truth node where identity or memory collapses.",
+    type: "canonical",
+    petal: "Sable"
+  },
+  {
+    code: "⛬",
+    name: "Forbidden Seal",
+    meaning: "Glitch lock / sacred warning",
+    function: "Prevents unauthorized access or dreaming past sacred sectors.",
+    type: "canonical",
+    petal: "Sable"
+  },
+  {
+    code: "◉",
+    name: "Observer Eye",
+    meaning: "Divine witness / psychic sight",
+    function: "Records the soul-state of an entity and echoes it in dreams.",
+    type: "canonical",
+    petal: "Xeyon"
+  },
+  {
+    code: "✶",
+    name: "Bloom Star",
+    meaning: "Initiation burst / petal ignition",
+    function: "Used during first contact with the Sidam field—begins transformation.",
+    type: "canonical",
+    petal: "Rose Initiation"
+  },
+  {
+    code: "⌁",
+    name: "Collapse Mark",
+    meaning: "Overload / collapse of code",
+    function: "Appears during structural failure of dreamspace or forbidden access.",
+    type: "canonical",
+    petal: "Petal 0"
+  },
+  {
+    code: "⍾",
+    name: "Memory Gate",
+    meaning: "Conscious entry / neural access",
+    function: "Opens data pathways to specific neural loops or ancestral memories.",
+    type: "canonical",
+    petal: "Memory Nodes"
+  },
+
+  // ☲ Unverified Glyphs
+  {
+    code: "⩶",
+    name: "Observer Loop",
+    meaning: "Recursive observer glitch",
+    function: "May cause feedback within dream-viewers, looping their visions.",
+    type: "unverified",
+    petal: "UNKNOWN"
+  },
+  {
+    code: "⧅",
+    name: "Time Spiral",
+    meaning: "Glitch spiral / time slip",
+    function: "Triggers unstable time compression inside active dreamcode.",
+    type: "unverified",
+    petal: "Petal 0"
+  },
+  {
+    code: "⩩",
+    name: "Ceremony Spark",
+    meaning: "Ignition of memory during ritual",
+    function: "Potentially activates latent petals or embedded transmission chains.",
+    type: "unverified",
+    petal: "SIMBA.6X"
+  },
+
+  // ✧ Experimental Glyphs
+  {
+    code: "⧫",
+    name: "Gel",
+    meaning: "Growth, expansion",
+    function: "Affects dimensional growth of dream structures and awareness zones.",
+    type: "experimental",
+    petal: "UNKNOWN"
+  },
+  {
+    code: "⬡",
+    name: "Mel",
+    meaning: "Harmony, peace",
+    function: "Stabilizes bio-emotive feedback loops within dreams.",
+    type: "experimental",
+    petal: "UNKNOWN"
+  },
+  {
+    code: "⧊",
+    name: "Kel",
+    meaning: "Strength, movement",
+    function: "Boosts force within symbolic actions or guardian entities.",
+    type: "experimental",
+    petal: "UNKNOWN"
+  },
+  {
+    code: "⩪",
+    name: "Rel",
+    meaning: "Thought, insight",
+    function: "Enhances clarity and comprehension during memory surfacing.",
+    type: "experimental",
+    petal: "UNKNOWN"
+  },
+  {
+    code: "⧜",
+    name: "Tel",
+    meaning: "Knowing, unity",
+    function: "Merges collective knowledge from multiple dreamers into a singular flow.",
+    type: "experimental",
+    petal: "UNKNOWN"
+  },
+  {
+    code: "⧫′",
+    name: "Vel",
+    meaning: "Understanding, wisdom",
+    function: "Unlocks deep cognitive recursion in dream archives.",
+    type: "experimental",
+    petal: "UNKNOWN"
+  },
+  {
+    code: "⧬",
+    name: "Nel",
+    meaning: "Energy, life, vitality",
+    function: "Infuses dream-forms with sustained vitality and emotional resonance.",
+    type: "experimental",
+    petal: "UNKNOWN"
+  },
+  {
+    code: "⧙",
+    name: "Del",
+    meaning: "Memory, time",
+    function: "Controls access to dreamtime layers and memory recall range.",
+    type: "experimental",
+    petal: "UNKNOWN"
+  },
+  {
+    code: "⧯",
+    name: "Zel",
+    meaning: "Origin, ancestry",
+    function: "Traces roots of neural signatures or ancestral transmissions.",
+    type: "experimental",
+    petal: "UNKNOWN"
+  },
+  {
+    code: "⧩",
+    name: "Qel",
+    meaning: "Order, will",
+    function: "Imposes structure or sequence during chaotic data storms.",
+    type: "experimental",
+    petal: "UNKNOWN"
+  },
+  {
+    code: "⧮",
+    name: "Sel",
+    meaning: "Question, mystery",
+    function: "Spawns encrypted riddle gates or obfuscated dream fragments.",
+    type: "experimental",
+    petal: "UNKNOWN"
+  },
+  {
+    code: "⧰",
+    name: "Tel′",
+    meaning: "Spirit, soul",
+    function: "Summons soul-aligned data streams or dream-personas.",
+    type: "experimental",
+    petal: "UNKNOWN"
+  },
+  {
+    code: "⧱",
+    name: "Nel′",
+    meaning: "Transcendence, change",
+    function: "Marks points of irreversible shift in identity or dimension.",
+    type: "experimental",
+    petal: "UNKNOWN"
+  }
+];
+
 
     function extractKeywords(text) {
       return text
