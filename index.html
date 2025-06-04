@@ -7,7 +7,7 @@
   <!-- Link to your existing CSS theme -->
   <link rel="stylesheet" href="glyph-style.css">
   <style>
-    /* Additional styles for the locked overlay message */
+    /* Additional styles for the locked overlay message and S.I.N. code modal */
     .lock-overlay {
       background-color: rgba(0, 0, 0, 0.6);
       color: #f1f1f1;
@@ -24,11 +24,134 @@
       cursor: pointer;
       text-decoration: underline;
     }
-    /* When locked, tint unverified/experimental glyphs (if they slip in) */
     .locked .unverified,
     .locked .experimental {
       opacity: 0.1;
       pointer-events: none;
+    }
+
+    /* S.I.N. Code Modal Styles */
+    #sinModal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.90);
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    #sinModal.active {
+      display: flex;
+    }
+    .sin-box {
+      background: transparent;
+      border-radius: 12px;
+      box-shadow: 0 0 32px #ff3cac66, 0 0 1px #fff;
+      padding: 2rem 2.5rem;
+      text-align: center;
+      min-width: 340px;
+    }
+    .sin-title {
+      font-family: 'Orbitron', 'Courier New', monospace;
+      color: #ff3cac;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      letter-spacing: 0.12em;
+      text-shadow: 0 0 16px #ff3cac,0 0 2px #fff;
+    }
+    .sin-desc {
+      color: #fff;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+      font-family: 'Courier New', monospace;
+    }
+    .sin-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 0.5rem;
+    }
+    .sin-input {
+      background: #000;
+      color: #39FF14;
+      font-family: 'Courier New', monospace;
+      font-size: 1.3rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px 0 0 4px;
+      outline: none;
+      width: 170px;
+      letter-spacing: 0.1em;
+      box-shadow: 0 0 2px #00ffb3;
+      border-right: 2px solid #111;
+      /* System lock look */
+      background-image: linear-gradient(to right, #000 87%, #111 100%);
+      position: relative;
+    }
+    .sys-lock-label {
+      background: #000;
+      color: #39FF14;
+      font-family: 'Courier New', monospace;
+      font-size: 1.18rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px 0 0 4px;
+      margin-right: -7px;
+      box-shadow: 0 0 8px #0f0c,0 0 1px #0f0c;
+      border: 2px solid #222;
+      border-right: none;
+      min-width: 70px;
+      display: inline-block;
+      letter-spacing: 0.02em;
+      position: relative;
+      z-index: 1;
+    }
+    .sin-enter-btn {
+      background: #ff3cac;
+      color: #000;
+      font-family: 'Orbitron', 'Courier New', monospace;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 0 4px 4px 0;
+      padding: 0.5rem 1.4rem;
+      cursor: pointer;
+      box-shadow: 0 0 18px #ff3cac77;
+      transition: background 0.12s, box-shadow 0.15s;
+    }
+    .sin-enter-btn:active {
+      background: #fff;
+      color: #ff3cac;
+    }
+    .sin-enter-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* System error mini animation */
+    .sin-error {
+      color: #fff;
+      border-radius: 6px;
+      background: #390018ee;
+      font-family: 'Courier New', monospace;
+      margin-top: 0.7rem;
+      margin-bottom: 0.2rem;
+      padding: 0.4rem 0.8rem;
+      border: 1px solid #ff3cac;
+      text-shadow: 0 0 8px #ff3cac,0 0 1px #fff;
+      opacity: 0;
+      transform: translateY(-12px) scale(0.98);
+      animation: sysErrorPop 0.6s cubic-bezier(.57,1.7,.18,.93) forwards;
+      font-size: 1rem;
+      min-width: 150px;
+      max-width: 230px;
+      box-shadow: 0 0 18px #ff3cac44;
+    }
+    @keyframes sysErrorPop {
+      0% { opacity: 0; transform: translateY(-12px) scale(0.98);}
+      65% { opacity: 1; transform: translateY(0) scale(1.04);}
+      85% { opacity: 1; transform: translateY(0) scale(0.97);}
+      100% { opacity: 1; transform: translateY(0) scale(1);}
     }
   </style>
 </head>
@@ -42,6 +165,32 @@
   <div id="lockOverlay" class="lock-overlay">
     ✶ <span id="visibleCount">0</span> glyphs visible — <span id="hiddenCount">0</span> hidden within the Inner Network…<br>
     <span id="unlockButton" class="lock-toggle">[ꗃ Access via S.I.N. Code]</span>
+  </div>
+
+  <!-- S.I.N. Code Modal -->
+  <div id="sinModal">
+    <div class="sin-box">
+      <div class="sin-title">S.I.N. CODE</div>
+      <div class="sin-desc">Forbidden Access, enter your unique code.</div>
+      <form id="sinForm" autocomplete="off">
+        <div class="sin-row">
+          <span class="sys-lock-label">▮SYS–LOCK▮</span>
+          <input
+            class="sin-input"
+            type="password"
+            id="sinInput"
+            maxlength="24"
+            spellcheck="false"
+            placeholder=""
+            autofocus
+            aria-label="S.I.N. code"
+            autocomplete="off"
+          />
+          <button class="sin-enter-btn" id="sinEnterBtn" type="submit">ENTER</button>
+        </div>
+        <div id="sinErrorArea"></div>
+      </form>
+    </div>
   </div>
 
   <main>
@@ -184,13 +333,47 @@
       listEl.innerHTML = html;
     }
 
-    // === 4. Lock/Unlock Toggle ===
+    // === 4. S.I.N. Code Modal Logic ===
+    function openSinModal() {
+      document.getElementById("sinModal").classList.add("active");
+      document.getElementById("sinInput").value = "";
+      document.getElementById("sinInput").focus();
+      document.getElementById("sinErrorArea").innerHTML = "";
+    }
+    function closeSinModal() {
+      document.getElementById("sinModal").classList.remove("active");
+    }
+
     document.getElementById("unlockButton").addEventListener("click", () => {
-      locked = false;
-      // Hide the overlay message once unlocked
-      document.getElementById("lockOverlay").style.display = "none";
-      renderGlyphs(document.getElementById("glyphSearch").value);
-      document.body.classList.remove("locked");
+      openSinModal();
+    });
+
+    document.getElementById("sinForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const input = document.getElementById("sinInput").value.trim();
+      const errorArea = document.getElementById("sinErrorArea");
+      errorArea.innerHTML = "";
+
+      // Correct password is "KingX"
+      if (input === "KingX") {
+        locked = false;
+        closeSinModal();
+        document.getElementById("lockOverlay").style.display = "none";
+        renderGlyphs(document.getElementById("glyphSearch").value);
+        document.body.classList.remove("locked");
+      } else {
+        // System error mini animation
+        errorArea.innerHTML = `<div class="sin-error">✖ SYSTEM ERROR: Invalid S.I.N. code</div>`;
+        document.getElementById("sinInput").value = "";
+        document.getElementById("sinInput").focus();
+      }
+    });
+
+    // Allow pressing Escape to close the modal
+    window.addEventListener("keydown", function(e) {
+      if (e.key === "Escape" && document.getElementById("sinModal").classList.contains("active")) {
+        closeSinModal();
+      }
     });
 
     // === 5. Search Bar Listener ===
