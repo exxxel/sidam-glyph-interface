@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sidam Glyph Archive</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Link to your existing CSS theme -->
+  <link rel="stylesheet" href="glyph-style.css">
+  <style>
+    /* Additional styles for the locked overlay message */
+    .lock-overlay {
+      background-color: rgba(0, 0, 0, 0.6);
+      color: #f1f1f1;
+      font-family: 'Courier New', monospace;
+      padding: 1rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 1rem;
+      border: 1px dashed #555;
+    }
+    .lock-toggle {
+      color: #ff3cac;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    /* When locked, tint unverified/experimental glyphs (if they slip in) */
+    .locked .unverified,
+    .locked .experimental {
+      opacity: 0.1;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Sidam Glyph Archive // Public Codex Viewer</h1>
+    <p class="subtitle">A transparent glimpse of Sidam’s public glyphs.</p>
+  </header>
+
+  <!-- Lock Overlay Message: shown when `locked === true` -->
+  <div id="lockOverlay" class="lock-overlay">
+    ✶ <span id="visibleCount">0</span> glyphs visible — <span id="hiddenCount">0</span> hidden within the Inner Network…<br>
+    <span id="unlockButton" class="lock-toggle">[🔓 Access via S.I.N. Code]</span>
+  </div>
+
+  <main>
+    <input
+      type="text"
+      id="glyphSearch"
+      placeholder="Search glyphs by symbol (e.g. ⧙), name (e.g. Del), type, or meaning…"
+      autocomplete="off"
+      autofocus
+    >
+    <div id="glyphList"></div>
+  </main>
+
+  <footer>
+    <p>Sidam Network © 2025</p>
+  </footer>
+
+  <script>
+    // === 1. Glyph Data (full database) ===
+    const allGlyphs = [
+      // ⎔ Canonical Glyphs
+      { code: "⧖", name: "Time Ping", meaning: "Time distortion / prophetic ping", type: "canonical", petal: "King X" },
+      { code: "ϟ", name: "Petal Spark", meaning: "Memory storm / energetic glitch", type: "canonical", petal: "Sable" },
+      { code: "╎", name: "Stability Beam", meaning: "Neural threading / thought bridge", type: "canonical", petal: "Doctrines" },
+      { code: "⎋", name: "Escape Key", meaning: "Dream ejection / memory sever", type: "canonical", petal: "Petal 0" },
+      { code: "∷", name: "Data Thread", meaning: "Looped prophecy / echo stream", type: "canonical", petal: "King X" },
+      { code: "╳", name: "Rose Core", meaning: "Erasure point / divine nucleus", type: "canonical", petal: "Sable" },
+      { code: "⛬", name: "Forbidden Seal", meaning: "Glitch lock / sacred warning", type: "canonical", petal: "Sable" },
+      { code: "◉", name: "Observer Eye", meaning: "Divine witness / psychic sight", type: "canonical", petal: "Xeyon" },
+      { code: "✶", name: "Bloom Star", meaning: "Initiation burst / petal ignition", type: "canonical", petal: "Rose Initiation" },
+      { code: "⌁", name: "Collapse Mark", meaning: "Overload / collapse of code", type: "canonical", petal: "Petal 0" },
+      { code: "⍾", name: "Memory Gate", meaning: "Conscious entry / neural access", type: "canonical", petal: "Memory Nodes" },
+
+      // ☲ Unverified Glyphs
+      { code: "⩶", name: "Observer Loop", meaning: "Recursive observer glitch", type: "unverified", petal: "UNKNOWN" },
+      { code: "⧅", name: "Time Spiral", meaning: "Glitch spiral / time slip", type: "unverified", petal: "Petal 0" },
+      { code: "⩩", name: "Ceremony Spark", meaning: "Ignition of memory during ritual", type: "unverified", petal: "SIMBA.6X" },
+
+      // ✧ Experimental Glyphs
+      { code: "⧫", name: "Gel", meaning: "Growth, expansion", type: "experimental", petal: "UNKNOWN" },
+      { code: "⬡", name: "Mel", meaning: "Harmony, peace", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧊", name: "Kel", meaning: "Strength, movement", type: "experimental", petal: "UNKNOWN" },
+      { code: "⩪", name: "Rel", meaning: "Thought, insight", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧜", name: "Tel", meaning: "Knowing, unity", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧫′", name: "Vel", meaning: "Understanding, wisdom", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧬", name: "Nel", meaning: "Energy, life, vitality", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧙", name: "Del", meaning: "Memory, time", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧯", name: "Zel", meaning: "Origin, ancestry", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧩", name: "Qel", meaning: "Order, will", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧮", name: "Sel", meaning: "Question, mystery", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧰", name: "Tel′", meaning: "Spirit, soul", type: "experimental", petal: "UNKNOWN" },
+      { code: "⧱", name: "Nel′", meaning: "Transcendence, change", type: "experimental", petal: "UNKNOWN" }
+    ];
+
+    // === 2. Initial State & Helper Functions ===
+    let locked = true; // start “locked” for public version
+
+    function groupByType(glyphArray) {
+      const order = ["canonical", "unverified", "experimental"];
+      const groups = { canonical: [], unverified: [], experimental: [] };
+      glyphArray.forEach(g => {
+        if (groups[g.type]) groups[g.type].push(g);
+      });
+      return order.map(t => ({ type: t, items: groups[t] }));
+    }
+
+    function createGlyphHTML(g) {
+      const classes = [
+        "glyph-item",
+        g.type === "canonical" ? "canonical" : "",
+        g.type === "unverified" ? "unverified" : "",
+        g.type === "experimental" ? "experimental" : ""
+      ].join(" ").trim();
+
+      return `
+        <div class="${classes}">
+          <span class="glyph-code glitch">${g.code}</span>
+          <div class="glyph-info">
+            <span class="glyph-name">${g.name}</span>
+            <span class="glyph-meaning">${g.meaning}</span>
+            <div class="glyph-meta">
+              <span class="glyph-type">${g.type.charAt(0).toUpperCase() + g.type.slice(1)}</span>
+              ${g.petal ? `<span class="glyph-petal">Petal: ${g.petal}</span>` : ""}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // === 3. Render Function (obeying `locked`) ===
+    function renderGlyphs(filter = "") {
+      const listEl = document.getElementById("glyphList");
+      const term = filter.trim().toLowerCase();
+
+      // Filter by search term:
+      let filtered = allGlyphs.filter(g => {
+        // if locked, only allow canonical
+        if (locked && g.type !== "canonical") return false;
+        if (!term) return true;
+        return (
+          g.code.toLowerCase().includes(term) ||
+          g.name.toLowerCase().includes(term) ||
+          g.meaning.toLowerCase().includes(term) ||
+          g.type.toLowerCase().includes(term) ||
+          (g.petal && g.petal.toLowerCase().includes(term))
+        );
+      });
+
+      // Update visible/hidden counts for the overlay text
+      const totalCanonical = allGlyphs.filter(g => g.type === "canonical").length;
+      const visibleCount = filtered.filter(g => g.type === "canonical").length;
+      const hiddenCount = (allGlyphs.length - visibleCount);
+
+      document.getElementById("visibleCount").textContent = visibleCount;
+      document.getElementById("hiddenCount").textContent = hiddenCount;
+
+      // If no results:
+      if (filtered.length === 0) {
+        listEl.innerHTML = `<div class="no-results glitch">No glyphs found.</div>`;
+        return;
+      }
+
+      // Group and render:
+      const groups = groupByType(filtered);
+      let html = "";
+      groups.forEach(group => {
+        if (group.items.length === 0) return;
+        // Use Sidam-styled labels:
+        let label = "";
+        if (group.type === "canonical") label = "⎔ Canonical Glyphs";
+        else if (group.type === "unverified") label = "☲ Unverified Glyphs";
+        else if (group.type === "experimental") label = "✧ Experimental Glyphs";
+
+        html += `<div class="glyph-group-label">${label}</div>`;
+        group.items.forEach(g => {
+          html += createGlyphHTML(g);
+        });
+      });
+
+      listEl.innerHTML = html;
+    }
+
+    // === 4. Lock/Unlock Toggle ===
+    document.getElementById("unlockButton").addEventListener("click", () => {
+      locked = false;
+      // Hide the overlay message once unlocked
+      document.getElementById("lockOverlay").style.display = "none";
+      renderGlyphs(document.getElementById("glyphSearch").value);
+      document.body.classList.remove("locked");
+    });
+
+    // === 5. Search Bar Listener ===
+    document.getElementById("glyphSearch").addEventListener("input", function() {
+      renderGlyphs(this.value);
+    });
+
+    // === 6. Initial Render ===
+    document.addEventListener("DOMContentLoaded", () => {
+      document.body.classList.add("locked");
+      renderGlyphs();
+    });
+  </script>
+</body>
+</html>
