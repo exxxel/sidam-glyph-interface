@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Petal Signature Generator</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { background: #0a0a0a; color: #e5e5e5; font-family: monospace; padding: 2rem; }
+    textarea { width: 100%; height: 150px; background: #111; color: #fff; padding: 0.5rem; border: 1px solid #333; }
+    button { margin-top: 1rem; padding: 0.5rem 1rem; background: #ff3cac; border: none; color: #000; cursor: pointer; }
+    .signature { margin-top: 2rem; padding: 1rem; background: #141414; border: 1px solid #333; }
+    .glyph { font-size: 1.5rem; margin-right: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Sidam Petal Signature Generator</h1>
+  <p>Paste your dream journal entry or poem fragment below, then press Generate.</p>
+  <textarea id="userInput" placeholder="Enter text…"></textarea>
+  <button id="generateBtn">Generate Petal Signature</button>
+  <div id="result" class="signature"></div>
+
+  <script>
+    // 1. Glyph data
+    const glyphDefinitions = [
+      { code: "⧙", name: "Del", meanings: ["memory","time","recall"], role: "primary" },
+      { code: "⧩", name: "Qel", meanings: ["order","will","structure"], role: "support" },
+      { code: "⧖", name: "Time Ping", meanings: ["future","prophecy","signal"], role: "support" },
+      { code: "⧬", name: "Nel", meanings: ["energy","vitality","life"], role: "support" },
+      { code: "╳",  name: "Rose Core", meanings: ["erasure","nucleus","truth"], role: "support" },
+      // …add more if desired
+    ];
+
+    function extractKeywords(text) {
+      return text
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, "")
+        .split(/\s+/)
+        .filter(word => word && !["the","and","of","to","a"].includes(word));
+    }
+
+    function scoreGlyphs(keywords) {
+      return glyphDefinitions.map(g => {
+        const hits = keywords.filter(k => g.meanings.includes(k));
+        return { glyph: g, score: hits.length };
+      }).sort((a, b) => b.score - a.score);
+    }
+
+    function generateSignature(text) {
+      const keywords = extractKeywords(text);
+      const scored = scoreGlyphs(keywords);
+      const primary = scored.find(s => s.score > 0)?.glyph || glyphDefinitions.find(g => g.code === "⧙");
+      const others = scored
+        .map(s => s.glyph)
+        .filter(g => g.code !== primary.code)
+        .slice(0, 2);
+      return [primary, ...others];
+    }
+
+    document.getElementById("generateBtn").addEventListener("click", () => {
+      const text = document.getElementById("userInput").value;
+      const signature = generateSignature(text);
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "<h2>Petal Signature:</h2>";
+      signature.forEach(g => {
+        resultDiv.innerHTML += \`
+          <div>
+            <span class="glyph">\${g.code}</span>
+            \${g.name} — \${g.meanings.join(", ")}
+          </div>
+        \`;
+      });
+    });
+  </script>
+</body>
+</html>
