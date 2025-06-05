@@ -40,8 +40,14 @@
       box-shadow: 0 0 16px 4px #ff3cac66;
       outline: none;
     }
-    button {
+    .button-row {
       margin-top: 1rem;
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    button {
       padding: 0.5rem 1rem;
       background: #ff3cac;
       border: none;
@@ -54,6 +60,7 @@
       z-index: 1;
       transition: box-shadow 0.1s, background 0.2s;
       box-shadow: 0 2px 12px #ff3cac33;
+      border-radius: 3px;
     }
     button:after {
       content: "";
@@ -182,16 +189,76 @@
       box-shadow: 0 0 22px #ff3cacaa, 0 0 2px #fff3;
       color: #fff;
     }
+    .warning-message {
+      color: #ff4b6e;
+      background: #fff2;
+      border: 1px solid #ff3cac;
+      padding: 0.5em 1em;
+      margin: 1em 0 0.5em 0;
+      border-radius: 5px;
+      font-size: 1.04em;
+      display: none;
+    }
+    .copied-message {
+      color: #bfffa9;
+      background: #173e12;
+      border: 1px solid #6be27a;
+      padding: 0.3em 0.7em;
+      margin: 0.5em 0 0 0;
+      border-radius: 4px;
+      font-size: 0.99em;
+      display: none;
+    }
+    .matched-keywords {
+      margin-top: 1.5rem;
+      color: #a3ffea;
+      font-size: 1.04em;
+      background: #0a1a1b;
+      border: 1px solid #2b3c3f;
+      border-radius: 6px;
+      padding: 0.7em 1em 0.7em 1em;
+      box-shadow: 0 0 8px #00ffe633;
+      max-width: 37em;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem !important;
+      }
+      .signature, .matched-keywords {
+        padding: 0.7rem 0.6rem;
+        font-size: 0.98em;
+      }
+      textarea {
+        font-size: 1em;
+      }
+      .download-link {
+        font-size: 1em;
+        padding: 0.4rem 0.7rem;
+      }
+      .button-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.2rem;
+      }
+    }
   </style>
 </head>
 <body>
   <h1 class="glitch-text">Sidam Petal Signature Generator</h1>
   <p>Paste your dream journal entry or poem fragment below, then press Generate.</p>
-  <a class="download-link" href="how_to_read_petal_signature.md" download>🡻 Download: How to Read Your Petal Signature</a>
+  <a class="download-link" href="how_to_read_petal_signature.md" download>⬇️ Download: How to Read Your Petal Signature</a>
   <textarea id="userInput" placeholder="Enter text…"></textarea>
-  <button id="generateBtn">Generate Petal Signature</button>
-  <div id="result" class="signature"></div>
-
+  <div class="button-row">
+    <button id="generateBtn">Generate Petal Signature</button>
+    <button id="clearBtn" type="button">Clear</button>
+    <button id="copyBtn" type="button" style="display:none;">Copy Signature</button>
+  </div>
+  <div id="warning" class="warning-message" aria-live="assertive"></div>
+  <div id="copied" class="copied-message" aria-live="polite"></div>
+  <div id="result" class="signature" role="status" aria-live="polite"></div>
+  <div id="matched" class="matched-keywords"></div>
   <script>
     // Animated glitch effect and your full glyph data!
     const glyphDefinitions = [
@@ -234,11 +301,10 @@
 
     function scoreGlyphs(keywords) {
       return glyphDefinitions.map(g => {
-        // match against any meaning, not requiring full word match, just substring
         const hits = keywords.filter(k =>
           g.meanings.some(m => m.includes(k) || k.includes(m))
         );
-        return { glyph: g, score: hits.length };
+        return { glyph: g, score: hits.length, matched: hits };
       }).sort((a, b) => b.score - a.score);
     }
 
@@ -253,19 +319,75 @@
       return [primary, ...others];
     }
 
+    function getMatchedKeywords(text) {
+      const keywords = extractKeywords(text);
+      const result = [];
+      scoreGlyphs(keywords).forEach(({glyph, matched}) => {
+        matched.forEach(k => {
+          result.push({ keyword: k, glyph: `${glyph.code} ${glyph.name}` });
+        });
+      });
+      return result;
+    }
+
     function glitchGlyphs() {
       document.querySelectorAll('.glyph').forEach(glyph => {
         glyph.classList.remove('glyph-glitch');
-        // Add a small random delay for staggered effect
         setTimeout(() => glyph.classList.add('glyph-glitch'), Math.random() * 120 + 10);
       });
     }
 
-    document.getElementById("generateBtn").addEventListener("click", () => {
-      const text = document.getElementById("userInput").value;
-      const signature = generateSignature(text);
-      const resultDiv = document.getElementById("result");
+    // --- UI Event Wiring ---
+    const generateBtn = document.getElementById("generateBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const resultDiv = document.getElementById("result");
+    const warningDiv = document.getElementById("warning");
+    const copiedDiv = document.getElementById("copied");
+    const matchedDiv = document.getElementById("matched");
+    const input = document.getElementById("userInput");
+
+    function showWarning(msg) {
+      warningDiv.textContent = msg;
+      warningDiv.style.display = "block";
+    }
+    function hideWarning() {
+      warningDiv.textContent = "";
+      warningDiv.style.display = "none";
+    }
+    function showCopied() {
+      copiedDiv.textContent = "Signature copied!";
+      copiedDiv.style.display = "inline-block";
+      setTimeout(() => { copiedDiv.style.display = "none";}, 1200);
+    }
+
+    function showMatchedKeywords(text) {
+      const matches = getMatchedKeywords(text);
+      if (matches.length === 0) {
+        matchedDiv.textContent = "";
+        matchedDiv.style.display = "none";
+        return;
+      }
+      matchedDiv.innerHTML = matches.map(m =>
+        `Matched “<b>${m.keyword}</b>” → <span style="color:#ff3cac">${m.glyph}</span>`
+      ).join("<br>");
+      matchedDiv.style.display = "block";
+    }
+
+    generateBtn.addEventListener("click", () => {
+      hideWarning();
+      copiedDiv.style.display = "none";
+      const text = input.value.trim();
+      if (!text) {
+        resultDiv.innerHTML = "";
+        matchedDiv.style.display = "none";
+        copyBtn.style.display = "none";
+        showWarning(" ｡°⚠︎°｡ Please enter some text to generate your Petal Signature.");
+        return;
+      }
+      hideWarning();
       resultDiv.innerHTML = "<h2 class='glitch-text'>Petal Signature:</h2>";
+      const signature = generateSignature(text);
       signature.forEach(g => {
         resultDiv.innerHTML += `
           <div>
@@ -275,9 +397,32 @@
         `;
       });
       setTimeout(glitchGlyphs, 60);
+      copyBtn.style.display = "inline-block";
+      showMatchedKeywords(text);
     });
 
-    // Optionally: animate glitch on glyphs when hovered/focused
+    clearBtn.addEventListener("click", () => {
+      input.value = "";
+      resultDiv.innerHTML = "";
+      matchedDiv.innerHTML = "";
+      matchedDiv.style.display = "none";
+      copyBtn.style.display = "none";
+      copiedDiv.style.display = "none";
+      hideWarning();
+      input.focus();
+    });
+
+    copyBtn.addEventListener("click", () => {
+      // Only copy the signature lines (no html)
+      const html = resultDiv.innerHTML;
+      const lines = Array.from(resultDiv.querySelectorAll("div")).map(
+        d => d.textContent.trim()
+      );
+      const text = lines.join("\n");
+      navigator.clipboard.writeText(text).then(showCopied);
+    });
+
+    // Animate glitch on glyphs when hovered/focused
     document.addEventListener('mouseover', e => {
       if(e.target.classList.contains('glyph')) {
         e.target.classList.remove('glyph-glitch');
